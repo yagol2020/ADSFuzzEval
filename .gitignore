@@ -1,0 +1,11 @@
+.idea
+__pycache__
+towns_map
+seed_scenarios*
+interfuser.pth.tar
+resnet50-0676ba61.pth
+resnet50d_ra2-464e36ba.pth
+llava-v1.5-checkpoint.pth
+vision-encoder-r50.pth.tar
+llava-v1.5-7b/
+*/.coverage

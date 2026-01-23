@@ -1,0 +1,6 @@
+data/
+.idea/
+__pycache__
+.vscode/
+carla-autoware
+carla

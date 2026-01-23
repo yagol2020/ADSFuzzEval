@@ -1,0 +1,51 @@
+FROM ubuntu:20.04
+###################################################
+LABEL fuzzer="DriveFuzz"
+LABEL ads="LMDrive"
+###################################################
+ENV ADS="lmdrive"
+###################################################
+ENV http_proxy=http://172.17.0.1:7890
+ENV https_proxy=http://172.17.0.1:7890
+###################################################
+RUN sed -i s@/archive.ubuntu.com/@/mirrors.tuna.tsinghua.edu.cn/@g /etc/apt/sources.list
+RUN apt-get clean
+###################################################
+RUN apt update && apt upgrade -y
+RUN apt update && apt install -y software-properties-common vim libsm6 curl gcc cmake make libxext6 libxrender-dev apt-transport-https gnupg ca-certificates wget ffmpeg net-tools g++
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+RUN apt update
+RUN apt install -y docker-ce-cli
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt install python3.7 -y
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
+RUN update-alternatives --set python /usr/bin/python3.7
+RUN apt install python3.7-distutils -y
+RUN apt install python3-pip -y
+RUN python -m pip install --upgrade pip
+###################################################
+RUN pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu116
+RUN pip install nvidia-cublas-cu11==11.10.3.66 nvidia-cudnn-cu11==8.5.0.96
+###################################################
+WORKDIR /tmp
+RUN apt install python3.7-dev -y # for "Python.h"
+COPY requirements-lmdrive.txt requirements.txt
+RUN pip install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.1+cu116.html
+RUN mkdir -p /tmp/fuzzerdata-drivefuzz
+RUN chmod 777 /tmp/fuzzerdata-drivefuzz
+RUN mkdir -p bagfiles
+RUN mkdir -p $HOME/.Xauthority
+RUN chmod 777 $HOME/.Xauthority
+RUN mkdir -p /root/.cache/torch/hub/checkpoints
+###################################################
+WORKDIR /DriveFuzz
+COPY . .
+RUN cd LMDrive/vision_encoder && python setup.py develop
+RUN cd LMDrive/LAVIS && python setup.py develop
+RUN mv resnet50-0676ba61.pth /root/.cache/torch/hub/checkpoints
+RUN mv resnet50d_ra2-464e36ba.pth /root/.cache/torch/hub/checkpoints
+RUN chmod -R 777 /DriveFuzz
+###################################################
+ENTRYPOINT ["bash"]
