@@ -134,4 +134,4 @@ The front and top carmera views of the false positive case are saved in `/tmp/fu
     ```
 2. Autoware is unstable / cannot locate the vehicle
    
-A possible reason is that the Autoware container starts ros2 multiple times, but fails to clean up the environment after the simulation ends. You can try `pkill -f ros2` and then retry.
+A possible reason is that the Autoware container starts ros2 multiple times, but fails to clean up the environment after the simulation ends. You can try `pkill -f ros2` or `ps -e -o pid,comm | grep -vE 'bash|PID|ps' | awk '{print $1}' | xargs -r kill -9`, then retry.
